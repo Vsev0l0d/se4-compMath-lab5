@@ -13,37 +13,45 @@ def check_equidistant_nodes(nodes):
     return True
 
 
-@lru_cache
+@lru_cache(maxsize=None)
 def get_dy(id_y: int, len_y: int) -> List[List[float]]:
     y = ctypes.cast(id_y, ctypes.py_object).value
     dy = [[i] for i in y]
     for i in range(1, len(y)):
         for j in range(len(y) - i):
             dy[j].append(dy[j + 1][-1] - dy[j][-1])
+
     field_names = ['yi'] + [f'd{i} Yi' for i in range(1, len(dy))]
-    print("\n" + tabulate(dy, field_names, tablefmt='grid', floatfmt='2.4f') + "\n")
+    print("\nКонечные разности:\n" + tabulate(dy, field_names, tablefmt='grid', floatfmt='2.4f') + "\n")
     return dy
 
 
-def calc_t_stuff(k: int, t: float) -> float:
-    if k == 0:
-        return 1
-    else:
-        t_mul = 1
-        for i in range(k):
-            t_mul *= (t - i)
-        return t_mul / math.factorial(k)
+def calc_t_stuff(k: int, t: float, back=False) -> float:
+    t_mul = 1
+    for i in range(k):
+        t_mul *= (t + i) if back else (t - i)
+    return t_mul / math.factorial(k)
 
 
 def newton(x: List[float], y: List[float], x0: float):
     if not check_equidistant_nodes(x):
         raise Exception('Узлы не являются равноотстоящими, метод Ньютона с конечными разностями не применим.')
+    if x0 in x:
+        return y[x.index(x0)]
 
     dy = get_dy(id(y), len(y))
-    t = (x0 - x[0]) / (x[1] - x[0])
+    h = (x[1] - x[0])
+    j = int(x0 // h) - int(x[0] // h)
     result = 0
-    for i in range(len(x)):
-        result += dy[0][i] * calc_t_stuff(i, t)
+    if x0 - x[0] < x[-1] - x0:
+        j -= 1
+        t = (x0 - x[j]) / h
+        for i in range(len(dy) - j):
+            result += dy[j][i] * calc_t_stuff(i, t)
+    else:
+        t = (x0 - x[j]) / h
+        for i in range(j, -1, -1):
+            result += dy[i][j - i] * calc_t_stuff(j - i, t, back=True)
     return result
 
 

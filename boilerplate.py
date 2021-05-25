@@ -8,6 +8,7 @@ def create_dataset(get_line: Callable[..., str]):
         y = list(map(float, get_line().split(',')))
         if len(x) != len(y):
             raise
+        x, y = zip(*sorted(zip(x, y)))
     except:
         print("Введите корректную таблицу.")
         return None

@@ -35,7 +35,7 @@ if __name__ == '__main__':
             left = min(dataset[0])
             right = max(dataset[0])
 
-        print("\n" + tabulate(dataset, tablefmt='grid', floatfmt='2.4f') + "\n")
+        print("\nИсходные данные:\n" + tabulate(dataset, tablefmt='grid', floatfmt='2.4f') + "\n")
 
         x0 = number_input('Введите x0: ', min=left, max=right)
 
